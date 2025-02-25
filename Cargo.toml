@@ -1,5 +1,5 @@
 [package]
-name = "Stave"
+name = "stave"
 version = "0.1.0"
 edition = "2021"
 
