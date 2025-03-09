@@ -2,7 +2,7 @@ use std::{fs, str::FromStr};
 
 use ansi_to_tui::IntoText;
 use ratatui::{
-    layout::{Constraint, Direction, Layout},
+    layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::Text,
     widgets::{BorderType, Borders},
@@ -15,7 +15,7 @@ use crate::{
     utils::{center, get_lines},
 };
 
-pub fn draw(frame: &mut Frame, config: Config) {
+pub fn draw(frame: &mut Frame, rect: Rect, config: Config) {
     let description = &config.branding.description;
     let use_logo = &config.branding.logo;
     let logo_path = &config.branding.logo_path;
@@ -30,7 +30,7 @@ pub fn draw(frame: &mut Frame, config: Config) {
         Direction::Vertical,
         vec![Constraint::Percentage(90), Constraint::Percentage(10)],
     )
-    .split(frame.area());
+    .split(rect);
 
     let container = Container::new(
         "".to_string(),
@@ -59,11 +59,11 @@ pub fn draw(frame: &mut Frame, config: Config) {
             if logo.height() <= top_area.height.into() && logo.width() <= top_area.width.into() {
                 frame.render_widget(logo, area);
             } else {
-                bot_area = frame.area();
+                bot_area = rect;
             }
         }
     } else {
-        bot_area = frame.area();
+        bot_area = rect;
     }
 
     let desc = Text::raw(description)
@@ -79,6 +79,6 @@ pub fn draw(frame: &mut Frame, config: Config) {
 
     let area = center(bot_area, desc.width() as u16, get_lines(&description));
 
-    frame.render_widget(&container, frame.area());
+    frame.render_widget(&container, rect);
     frame.render_widget(desc, area);
 }
