@@ -1,1 +1,1 @@
-pub mod brand_page;
+pub mod welcome;

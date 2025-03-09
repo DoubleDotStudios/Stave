@@ -3,8 +3,15 @@ use std::fs;
 
 #[derive(Deserialize, Default, Clone)]
 pub struct RawConfig {
+    pub general: Option<RawGeneral>,
     pub branding: Option<RawBranding>,
     pub colors: Option<RawColors>,
+}
+
+#[derive(Deserialize, Default, Clone)]
+pub struct RawGeneral {
+    pub tabs: Option<Vec<String>>,
+    pub tab_spacer: Option<String>,
 }
 
 #[derive(Deserialize, Default, Clone)]
@@ -32,8 +39,15 @@ pub struct RawColors {
 
 #[derive(Deserialize, Default)]
 pub struct Config {
+    pub general: General,
     pub branding: Branding,
     pub colors: Colors,
+}
+
+#[derive(Deserialize, Default, Clone)]
+pub struct General {
+    pub tabs: Vec<String>,
+    pub tab_spacer: String,
 }
 
 #[derive(Deserialize, Default, Clone)]
@@ -68,6 +82,12 @@ impl Config {
                 fs::read_to_string(config_path).expect("Unable to read config file.");
             let config = toml::from_str::<RawConfig>(&raw_config).unwrap();
 
+            let general = if config.general.is_some() {
+                General::get(&config)
+            } else {
+                General::default()
+            };
+
             let branding = if config.branding.is_some() {
                 Branding::get(&config)
             } else {
@@ -80,7 +100,11 @@ impl Config {
                 Colors::default()
             };
 
-            Config { branding, colors }
+            Config {
+                branding,
+                colors,
+                general,
+            }
         } else {
             Config::default()
         }
@@ -90,6 +114,59 @@ impl Config {
         Config {
             branding: Branding::default(),
             colors: Colors::default(),
+            general: General::default(),
+        }
+    }
+}
+
+impl General {
+    fn get(config: &RawConfig) -> Self {
+        let def_tabs = vec![
+            "Welcome".to_string(),
+            "Location".to_string(),
+            "Welcome".to_string(),
+            "Keyboard".to_string(),
+            "Partitions".to_string(),
+            "GUI".to_string(),
+            "Users".to_string(),
+            "Overview".to_string(),
+            "Install".to_string(),
+            "Finish".to_string(),
+        ];
+
+        General {
+            tabs: config
+                .general
+                .clone()
+                .unwrap()
+                .tabs
+                .unwrap_or(def_tabs.clone()),
+            tab_spacer: config
+                .general
+                .clone()
+                .unwrap()
+                .tab_spacer
+                .unwrap_or("•".to_string()),
+        }
+    }
+
+    fn default() -> Self {
+        let def_tabs = vec![
+            "Welcome".to_string(),
+            "Location".to_string(),
+            "Welcome".to_string(),
+            "Keyboard".to_string(),
+            "Partitions".to_string(),
+            "GUI".to_string(),
+            "Users".to_string(),
+            "Overview".to_string(),
+            "Install".to_string(),
+            "Finish".to_string(),
+        ];
+
+        General {
+            tabs: def_tabs.clone(),
+            tab_spacer: "•".to_string(),
         }
     }
 }
@@ -129,13 +206,13 @@ impl Colors {
                 .clone()
                 .unwrap()
                 .inactive_border
-                .unwrap_or("#cba6f7".to_string()),
+                .unwrap_or("#6c7086".to_string()),
             active_border: config
                 .colors
                 .clone()
                 .unwrap()
                 .active_border
-                .unwrap_or("#6c7086".to_string()),
+                .unwrap_or("#cba6f7".to_string()),
 
             text: config
                 .colors
@@ -179,8 +256,8 @@ impl Colors {
     fn default() -> Self {
         Colors {
             border: "#89b4fa".to_string(),
-            inactive_border: "#cba6f7".to_string(),
-            active_border: "#6c7086".to_string(),
+            active_border: "#cba6f7".to_string(),
+            inactive_border: "#6c7086".to_string(),
 
             text: "#cdd6f4".to_string(),
             text_bg: "reset".to_string(),
