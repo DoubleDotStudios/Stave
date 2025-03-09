@@ -1,8 +1,9 @@
-mod brand_page;
 mod config;
 mod container;
+mod pages;
 mod utils;
 
+use crate::pages::brand_page;
 use config::Config;
 use crossterm::event::{self, Event};
 use ratatui::Frame;
