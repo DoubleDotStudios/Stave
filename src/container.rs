@@ -1,9 +1,7 @@
-use std::ops::Index;
-
 use ratatui::{
-    layout::{Layout, Rect},
+    layout::Rect,
     style::{Color, Style},
-    widgets::{Block, BorderType, Borders},
+    widgets::{Block, BorderType, Borders, Padding},
 };
 
 pub struct Container {
@@ -27,6 +25,7 @@ impl Container {
             .border_style(Style::default().fg(fg).bg(bg))
             .border_type(border_type)
             .borders(borders)
+            .padding(Padding::ZERO)
     }
 }
 
