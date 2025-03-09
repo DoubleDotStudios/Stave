@@ -26,13 +26,6 @@ pub fn draw(frame: &mut Frame, config: Config) {
     let mut logo_text: String = "Stave".to_string();
     let mut brand_page: Vec<Text> = vec![];
 
-    if *use_logo {
-        if logo_path != "" {
-            logo_text = fs::read_to_string(logo_path)
-                .expect(format!("Invalid path {}", logo_path).as_str());
-        }
-    }
-
     let outer = Layout::new(
         Direction::Vertical,
         vec![Constraint::Percentage(90), Constraint::Percentage(10)],
@@ -51,19 +44,26 @@ pub fn draw(frame: &mut Frame, config: Config) {
     let mut bot_area = area(container.clone(), outer[1]);
 
     if *use_logo {
-        let logo_proto = fs::read(logo_path).unwrap();
+        if logo_path != "" {
+            logo_text = fs::read_to_string(logo_path)
+                .expect(format!("Invalid path {}", logo_path).as_str());
 
-        let logo: Text = logo_proto
-            .into_text()
-            .expect("Failed to convert logo to text widget!");
+            let logo_proto = fs::read(logo_path).unwrap();
 
-        let area = center(top_area, logo.width() as u16, get_lines(&logo_text));
+            let logo: Text = logo_proto
+                .into_text()
+                .expect("Failed to convert logo to text widget!");
 
-        if logo.height() <= top_area.height.into() && logo.width() <= top_area.width.into() {
-            frame.render_widget(logo, area);
-        } else {
-            bot_area = frame.area();
+            let area = center(top_area, logo.width() as u16, get_lines(&logo_text));
+
+            if logo.height() <= top_area.height.into() && logo.width() <= top_area.width.into() {
+                frame.render_widget(logo, area);
+            } else {
+                bot_area = frame.area();
+            }
         }
+    } else {
+        bot_area = frame.area();
     }
 
     let desc = Text::raw(description)
