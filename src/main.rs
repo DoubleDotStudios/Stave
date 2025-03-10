@@ -9,8 +9,7 @@ use config::Config;
 use crossterm::event::{self, Event};
 use ratatui::{
     layout::{self, Constraint, Layout},
-    style::{Color, Style, Stylize},
-    symbols,
+    style::{Color, Style},
     widgets::{Block, BorderType, Borders, Tabs},
     Frame,
 };
