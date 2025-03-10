@@ -16,9 +16,9 @@ pub struct RawGeneral {
 
 #[derive(Deserialize, Default, Clone)]
 pub struct RawBranding {
-    pub logo: Option<bool>,
     pub logo_path: Option<String>,
     pub description: Option<String>,
+    pub welcome_message: Option<String>,
 }
 
 #[derive(Deserialize, Default, Clone)]
@@ -35,6 +35,8 @@ pub struct RawColors {
     pub active_text_bg: Option<String>,
     pub inactive_text: Option<String>,
     pub inactive_text_bg: Option<String>,
+    pub title_text: Option<String>,
+    pub title_text_bg: Option<String>,
 }
 
 #[derive(Deserialize, Default)]
@@ -52,9 +54,9 @@ pub struct General {
 
 #[derive(Deserialize, Default, Clone)]
 pub struct Branding {
-    pub logo: bool,
     pub logo_path: String,
     pub description: String,
+    pub welcome_message: String,
 }
 
 #[derive(Deserialize, Default, Clone)]
@@ -71,6 +73,8 @@ pub struct Colors {
     pub active_text_bg: String,
     pub inactive_text: String,
     pub inactive_text_bg: String,
+    pub title_text: String,
+    pub title_text_bg: String,
 }
 
 impl Config {
@@ -174,21 +178,33 @@ impl General {
 impl Branding {
     fn get(config: &RawConfig) -> Self {
         Branding {
-                logo: config.branding.clone().unwrap().logo.unwrap_or(true),
-                logo_path: config
-                    .branding.clone().unwrap()
-                    .logo_path.unwrap_or("".to_string())
-                    ,
-                description: config.branding.clone().unwrap().description.unwrap_or("Stave is a TUI OS installer built using Rust and Ratatui.\nCreated for SongbirdOS, it's name is taken from the note lines used in musical scores.".to_string()),
-            }
+            logo_path: config
+                .branding
+                .clone()
+                .unwrap()
+                .logo_path
+                .unwrap_or("".to_string()),
+            description: config
+                .branding
+                .clone()
+                .unwrap()
+                .description
+                .unwrap_or("".to_string()),
+            welcome_message: config
+                .branding
+                .clone()
+                .unwrap()
+                .welcome_message
+                .unwrap_or("Welcome!".to_string()),
+        }
     }
 
     fn default() -> Self {
         Branding {
-                logo: true,
-                logo_path:"".to_string(),
-                description: "Stave is a TUI OS installer built using Rust and Ratatui.\nCreated for SongbirdOS, it's name is taken from the note lines used in musical scores.".to_string(),
-            }
+            logo_path: "".to_string(),
+            description: "".to_string(),
+            welcome_message: "Welcome!".to_string(),
+        }
     }
 }
 
@@ -250,6 +266,18 @@ impl Colors {
                 .unwrap()
                 .inactive_text_bg
                 .unwrap_or("reset".to_string()),
+            title_text: config
+                .colors
+                .clone()
+                .unwrap()
+                .title_text
+                .unwrap_or("#f38ba8".to_string()),
+            title_text_bg: config
+                .colors
+                .clone()
+                .unwrap()
+                .title_text_bg
+                .unwrap_or("reset".to_string()),
         }
     }
 
@@ -265,6 +293,8 @@ impl Colors {
             active_text_bg: "reset".to_string(),
             inactive_text: "#a6adc8".to_string(),
             inactive_text_bg: "reset".to_string(),
+            title_text: "#f38ba8".to_string(),
+            title_text_bg: "reset".to_string(),
         }
     }
 }
