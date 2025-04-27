@@ -1,45 +1,89 @@
+mod build;
+mod components;
 mod config;
-mod container;
 mod pages;
 mod utils;
 
-use std::str::FromStr;
+use std::{io, str::FromStr};
 
 use color_eyre::{eyre::Ok, Result};
 use config::Config;
-use crossterm::event::{self, Event, KeyCode, KeyEventKind, ModifierKeyCode};
+use crossterm::{
+    event::{
+        self, EnableMouseCapture, Event, KeyCode, KeyEvent, KeyEventKind, KeyEventState,
+        KeyModifiers,
+    },
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen},
+};
+use pages::users::{active, inactive};
 use ratatui::{
     layout::{self, Constraint, Layout},
     style::{Color, Style},
     widgets::{Block, BorderType, Borders, Tabs},
     DefaultTerminal, Frame,
 };
-use utils::render_page;
+use tui_textarea::{Input, Key, TextArea};
+use utils::{down, render_page, up};
 
 fn main() -> Result<()> {
     color_eyre::install()?;
     let terminal = ratatui::init();
     let app_result = App::default().run(terminal);
+    disable_raw_mode()?;
     ratatui::restore();
     app_result
 }
 
 #[derive(Default)]
-struct App {
+struct App<'a> {
     tab: usize,
+    input: bool,
+    fields: Vec<TextArea<'a>>,
+    config: Config,
 }
 
-impl App {
-    fn run(mut self, mut terminal: DefaultTerminal) -> Result<()> {
+impl<'a> App<'a> {
+    fn run(&mut self, mut terminal: DefaultTerminal) -> Result<()> {
+        let mut idx = 0;
+        enable_raw_mode()?;
+
         loop {
             terminal.draw(|frame| self.draw(frame))?;
-
-            if let Event::Key(key) = event::read()? {
-                if key.kind == KeyEventKind::Press {
+            if self.input {
+                match event::read()?.into() {
+                    Input { key: Key::Esc, .. } => {
+                        self.input = false;
+                    }
+                    Input { key: Key::Tab, .. }
+                    | Input {
+                        key: Key::Enter, ..
+                    } => {
+                        inactive(&mut self.fields[idx], &self.config);
+                        idx = (idx + 1) % 2;
+                        active(&mut self.fields[idx], &self.config);
+                    }
+                    Input {
+                        key: Key::Char('q'),
+                        ctrl: true,
+                        ..
+                    } => return Ok(()),
+                    input => {
+                        self.fields[idx].input(input);
+                        if idx == 0 {}
+                    }
+                }
+            } else if let Event::Key(key) = event::read()? {
+                if key.kind == KeyEventKind::Press && !self.input {
+                    match key.code {
+                        KeyCode::Esc | KeyCode::Char('q') => return Ok(()),
+                        KeyCode::Tab => self.tab += up(self.tab, 2),
+                        KeyCode::BackTab => self.tab -= down(self.tab),
+                        _ => {}
+                    }
+                }
+                if key.modifiers.contains(KeyModifiers::CONTROL) {
                     match key.code {
                         KeyCode::Char('q') => return Ok(()),
-                        KeyCode::Tab => self.tab += 1,
-                        KeyCode::BackTab => self.tab -= 1,
                         _ => {}
                     }
                 }
@@ -47,8 +91,9 @@ impl App {
         }
     }
 
-    fn draw(&self, frame: &mut Frame) {
+    fn draw(&mut self, frame: &mut Frame) {
         let config = Config::get();
+        self.config = config.clone();
 
         let pages = Tabs::new(config.general.tabs.clone())
             .block(
@@ -71,7 +116,7 @@ impl App {
                     .bg(Color::from_str(&config.colors.active_text_bg).expect("Invalid color!")),
             )
             .divider(config.general.tab_spacer.clone())
-            .select(0);
+            .select(self.tab);
 
         let layout = Layout::new(
             layout::Direction::Vertical,
@@ -86,6 +131,7 @@ impl App {
             frame,
             layout[1],
             config,
+            self,
         );
     }
 }

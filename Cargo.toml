@@ -7,6 +7,9 @@ edition = "2021"
 ansi-to-tui = "7.0.0"
 color-eyre = "0.6.3"
 crossterm = "0.28.1"
+iana-time-zone = "0.1.61"
 ratatui = { version = "0.29.0", features = ["all-widgets"] }
 serde = { version = "1.0.218", features = ["derive"] }
 toml = "0.8.20"
+tui-textarea = "0.7.0"
+tui-widgets = "0.4.1"

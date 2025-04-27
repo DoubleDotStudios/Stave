@@ -1,6 +1,7 @@
 use std::{fs, process::exit, str::FromStr};
 
 use ansi_to_tui::IntoText;
+use color_eyre::eyre::Result;
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
@@ -9,8 +10,8 @@ use ratatui::{
 };
 
 use crate::{
+    components::container::{area, Container},
     config::Config,
-    container::{area, Container},
     utils::{center, get_lines},
 };
 
@@ -39,7 +40,7 @@ pub fn draw(frame: &mut Frame, rect: Rect, config: Config) {
     )
     .split(rect);
 
-    let container = Container::default(config);
+    let container = Container::default(&config);
 
     let mut welcome_area = area(container.clone(), outer[0]);
     let mut top_area = area(container.clone(), outer[1]);

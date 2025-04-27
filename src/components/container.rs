@@ -6,7 +6,7 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, Padding},
 };
 
-use crate::config::Config;
+use crate::{config::Config, utils::str_to_border_type};
 
 pub struct Container {
     fg: Color,
@@ -32,12 +32,12 @@ impl Container {
             .padding(Padding::ZERO)
     }
 
-    pub fn default(config: Config) -> Block<'static> {
+    pub fn default(config: &Config) -> Block<'static> {
         Container::new(
             "".to_string(),
             Color::from_str(&config.colors.border).expect("Invalid color!"),
             Color::Reset,
-            BorderType::Rounded,
+            str_to_border_type(&config.style.border_style),
             Borders::ALL,
         )
     }

@@ -1,11 +1,14 @@
 use serde::Deserialize;
 use std::fs;
 
+use crate::utils;
+
 #[derive(Deserialize, Default, Clone)]
 pub struct RawConfig {
     pub general: Option<RawGeneral>,
     pub branding: Option<RawBranding>,
     pub colors: Option<RawColors>,
+    pub style: Option<RawStyle>,
 }
 
 #[derive(Deserialize, Default, Clone)]
@@ -39,11 +42,17 @@ pub struct RawColors {
     pub title_text_bg: Option<String>,
 }
 
-#[derive(Deserialize, Default)]
+#[derive(Deserialize, Default, Clone)]
+pub struct RawStyle {
+    pub border_style: Option<String>,
+}
+
+#[derive(Deserialize, Default, Clone)]
 pub struct Config {
     pub general: General,
     pub branding: Branding,
     pub colors: Colors,
+    pub style: Style,
 }
 
 #[derive(Deserialize, Default, Clone)]
@@ -77,9 +86,14 @@ pub struct Colors {
     pub title_text_bg: String,
 }
 
+#[derive(Deserialize, Default, Clone)]
+pub struct Style {
+    pub border_style: String,
+}
+
 impl Config {
     pub fn get() -> Self {
-        let config_path = get_path();
+        let config_path = utils::get_path();
 
         if config_path != "" {
             let raw_config: String =
@@ -104,10 +118,17 @@ impl Config {
                 Colors::default()
             };
 
+            let style = if config.style.is_some() {
+                Style::get(&config)
+            } else {
+                Style::default()
+            };
+
             Config {
                 branding,
                 colors,
                 general,
+                style,
             }
         } else {
             Config::default()
@@ -119,6 +140,7 @@ impl Config {
             branding: Branding::default(),
             colors: Colors::default(),
             general: General::default(),
+            style: Style::default(),
         }
     }
 }
@@ -132,7 +154,7 @@ impl General {
             "Keyboard".to_string(),
             "Partitions".to_string(),
             "GUI".to_string(),
-            "Users".to_string(),
+            "User".to_string(),
             "Overview".to_string(),
             "Install".to_string(),
             "Finish".to_string(),
@@ -162,7 +184,7 @@ impl General {
             "Keyboard".to_string(),
             "Partitions".to_string(),
             "GUI".to_string(),
-            "Users".to_string(),
+            "User".to_string(),
             "Overview".to_string(),
             "Install".to_string(),
             "Finish".to_string(),
@@ -299,24 +321,21 @@ impl Colors {
     }
 }
 
-fn get_path() -> String {
-    if Result::expect(
-        fs::exists("./config.toml"),
-        "[WARN]: `config.toml` not found in current directory.",
-    ) {
-        return "./config.toml".to_string();
-    } else if Result::expect(
-        fs::exists("~/.config/stave/config.toml"),
-        "[WARN]: `config.toml` not found in `~/.config/stave/`.",
-    ) {
-        return "~/.config/stave/config.toml".to_string();
-    } else if Result::expect(
-        fs::exists("/etc/stave/config.toml"),
-        "[WARN]: `config.toml` not found in `/etc/stave/`.",
-    ) {
-        return "/etc/stave/config.toml".to_string();
-    } else {
-        println!("[WARN]: `config.toml` not found using the default config instead.");
-        return "".to_string();
+impl Style {
+    fn get(config: &RawConfig) -> Self {
+        Style {
+            border_style: config
+                .style
+                .clone()
+                .unwrap()
+                .border_style
+                .unwrap_or("plain".to_string()),
+        }
+    }
+
+    fn default() -> Self {
+        Style {
+            border_style: "plain".to_string(),
+        }
     }
 }
